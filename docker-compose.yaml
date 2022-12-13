@@ -1,0 +1,43 @@
+version: "3.3"
+networks:
+  dockernet:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+services:
+  sservice:
+    image: st1991/sampling-service:fastapi
+    restart: always
+    environment:
+      DB_USER: someusername
+      DB_PASSWORD: somecomplicatedpassword
+      DB_DATABASE: mdatabase
+      DB_ADDR: 172.20.0.3
+      DB_PORT: 5432
+      TABLE_NAME: pool
+    volumes:
+      - ./log:/var/log/app
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.2
+  postgres:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_USER: someusername
+      POSTGRES_PASSWORD: somecomplicatedpassword
+      POSTGRES_DB: mdatabase
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.3
+  dbadmin:
+    image: adminer:latest
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: 172.20.0.3
+    networks:
+      dockernet:
+        ipv4_address: 172.20.0.4
